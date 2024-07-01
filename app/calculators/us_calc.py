@@ -149,29 +149,41 @@ def get_available_years():
     return sorted(list(FEDERAL_TAX_RATES.keys()), reverse=True)
 
 def calculate_federal_tax(taxable_income, year, is_resident):
-    if is_resident:
-        tax = 0
-        for bracket in FEDERAL_TAX_RATES[year]:
-            if taxable_income > bracket['income_threshold']:
-                taxable_amount = min(taxable_income, bracket['income_threshold']) - bracket['income_threshold']
-                tax += taxable_amount * bracket['rate']
-            else:
-                break
-        return tax
-    else:
-        # Non-resident aliens are typically taxed at a flat 30% rate on most types of income
-        return taxable_income * 0.30
+    if not is_resident:
+        return taxable_income * 0.30  # Non-residents might have different rates
+    
+    tax = 0
+    previous_threshold = 0
+
+    for bracket in FEDERAL_TAX_RATES[year]:
+        if taxable_income > bracket['income_threshold']:
+            taxable_amount = min(taxable_income, bracket['income_threshold']) - previous_threshold
+            tax += taxable_amount * bracket['rate']
+            previous_threshold = bracket['income_threshold']
+        else:
+            taxable_amount = taxable_income - previous_threshold
+            tax += taxable_amount * bracket['rate']
+            break
+    
+    return tax
 
 def calculate_state_tax(taxable_income, state, year, is_resident):
     if not is_resident or state not in STATE_TAX_RATES[year]:
         return 0
+    
     tax = 0
+    previous_threshold = 0
+
     for bracket in STATE_TAX_RATES[year][state]:
         if taxable_income > bracket['income_threshold']:
-            taxable_amount = min(taxable_income, bracket['income_threshold']) - bracket['income_threshold']
+            taxable_amount = min(taxable_income, bracket['income_threshold']) - previous_threshold
             tax += taxable_amount * bracket['rate']
+            previous_threshold = bracket['income_threshold']
         else:
+            taxable_amount = taxable_income - previous_threshold
+            tax += taxable_amount * bracket['rate']
             break
+    
     return tax
 
 def calculate_local_tax(taxable_income, state, city, year, is_resident):
@@ -250,5 +262,5 @@ def calculate(income, state, city, year, is_resident=True, contribution_percent=
         'net_income': net_income,
         'total_compensation': income + employer_401k
     }
-
+    
     return breakdown

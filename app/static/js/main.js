@@ -153,77 +153,81 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function displayResults(result) {
-        let resultHTML = `
-            <h2>Results</h2>
-            <table class="result-table">
-                <tr>
-                    <th>Category</th>
-                    <th>Amount</th>
-                </tr>
-                <tr>
-                    <td>Residency Status</td>
-                    <td>${result.is_resident ? 'Resident' : 'Non-Resident'}</td>
-                </tr>
-                <tr>
-                    <td>Annual Gross Income</td>
-                    <td>${formatCurrency(result.gross_income)}</td>
-                </tr>
-        `;
+        let resultHTML = `<h2>Results</h2>
+                          <table class="result-table">
+                            <tr>
+                              <th>Category</th>
+                              <th>Amount</th>
+                            </tr>`;
 
-        if (result.country === 'United States') {
-            resultHTML += `
-                <tr>
-                    <td>Federal Tax</td>
-                    <td>${formatCurrency(result.federal_tax)}</td>
-                </tr>
-                <tr>
-                    <td>State Tax</td>
-                    <td>${formatCurrency(result.state_tax)}</td>
-                </tr>
-                <tr>
-                    <td>Local Tax</td>
-                    <td>${formatCurrency(result.local_tax)}</td>
-                </tr>
-                <tr>
-                    <td>Social Security Tax</td>
-                    <td>${formatCurrency(result.social_security_tax)}</td>
-                </tr>
-                <tr>
-                    <td>Medicare Tax</td>
-                    <td>${formatCurrency(result.medicare_tax)}</td>
-                </tr>
-                <tr>
-                    <td>Total Tax</td>
-                    <td>${formatCurrency(result.total_tax)}</td>
-                </tr>
-                <tr>
-                    <td>401(k) Contribution</td>
-                    <td>${formatCurrency(result.employee_401k_contribution)}</td>
-                </tr>
-                <tr>
-                    <td>Employer 401(k) Contribution</td>
-                    <td>${formatCurrency(result.employer_401k_contribution)}</td>
-                </tr>
-                <tr>
-                    <td>Annual Take-Home Income</td>
-                    <td>${formatCurrency(result.net_income)}</td>
-                </tr>
-                <tr>
-                    <td>Total Annual Compensation</td>
-                    <td>${formatCurrency(result.total_compensation)}</td>
-                </tr>
-            `;
-        } else if (result.country === 'Singapore') {
-            // ... (keep Singapore-specific result display)
-        } else if (result.country === 'China') {
-            // ... (keep China-specific result display)
-        }
 
-        resultHTML += `
-            </table>
-        `;
+            // Define ordered keys for each country
+            const orderedKeysUS = [
+                'gross_income',
+                'federal_tax',
+                'state_tax',
+                'local_tax',
+                'medicare_tax',
+                'social_security_tax',
+                'employee_401k_contribution',
+                'net_income',
+                'total_compensation',
+                'employer_401k_contribution'
+            ];
 
-        resultDiv.innerHTML = resultHTML;
+            const orderedKeysSG = [
+                'gross_income',
+                'income_tax',
+                'employee_cpf_contribution',
+                'employer_cpf_contribution',
+                'net_income',
+                'total_compensation'
+            ];
+
+            const orderedKeysCN = [
+                'gross_income',
+                'income_tax',
+                'employee_social_insurance',
+                'employer_social_insurance',
+                'net_income',
+                'total_compensation'
+            ];
+
+            // Determine the appropriate ordered keys based on the country
+            let orderedKeys;
+            switch (result.country) {
+                case 'United States':
+                    orderedKeys = orderedKeysUS;
+                    break;
+                case 'Singapore':
+                    orderedKeys = orderedKeysSG;
+                    break;
+                case 'China':
+                    orderedKeys = orderedKeysCN;
+                    break;
+                default:
+                    orderedKeys = Object.keys(result);
+            }
+
+            // Filter and format each key in the result object
+            orderedKeys.forEach(key => {
+                if (key in result) {
+                    // Format the key name from snake_case to Title Case
+                    let formattedKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+                    // Determine if the value should be formatted as currency
+                    let value = result[key];
+                    value = formatCurrency(value);
+
+                    resultHTML += `<tr>
+                                     <td>${formattedKey}</td>
+                                     <td>${value}</td>
+                                   </tr>`;
+                }
+            });
+
+            resultHTML += `</table>`;
+            document.getElementById('result').innerHTML = resultHTML;
     }
 
     function createCharts(result) {
