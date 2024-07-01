@@ -63,6 +63,8 @@ def calculate():
                 employer_match_limit = safe_float(data.get('employer-match-limit'))
                 result = calculator.calculate(income, state, city, year, is_resident, 
                                               contribution_percent, employer_match_percent, employer_match_limit)
+            elif country == 'China':
+                result = calculator.calculate(income, state, city, year, is_resident)
             else:
                 return jsonify({'error': 'Unsupported country'}), 400
 

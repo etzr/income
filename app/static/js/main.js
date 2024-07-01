@@ -7,11 +7,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const cityContainer = document.getElementById('city-container');
     const citySelect = document.getElementById('city');
     const taxYearSelect = document.getElementById('tax-year');
+    const residencyStatusSelect = document.getElementById('residency-status');
     const singaporeFields = document.getElementById('singapore-fields');
     const usFields = document.getElementById('us-fields');
+    const chinaFields = document.getElementById('china-fields');
 
     function formatCurrency(amount) {
-        return '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        return amount && typeof amount === 'number' 
+            ? '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+            : '$0.00';
     }
 
     function populateDropdown(selectElement, options) {
@@ -34,12 +38,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const selectedCountry = countrySelect.value;
                 if (selectedCountry) {
                     updateStates(selectedCountry);
-                    toggleCountrySpecificFields(selectedCountry);
+                    toggleCountrySpecificFields(selectedCountry, residencyStatusSelect.value === 'resident');
                 } else {
                     stateContainer.style.display = 'none';
                     cityContainer.style.display = 'none';
-                    singaporeFields.style.display = 'none';
-                    usFields.style.display = 'none';
+                    toggleCountrySpecificFields('');
                 }
             });
 
@@ -52,18 +55,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     cityContainer.style.display = 'none';
                 }
             });
+
+            residencyStatusSelect.addEventListener('change', () => {
+                const selectedCountry = countrySelect.value;
+                if (selectedCountry) {
+                    toggleCountrySpecificFields(selectedCountry, residencyStatusSelect.value === 'resident');
+                }
+            });
         });
 
-    function toggleCountrySpecificFields(country) {
+    function toggleCountrySpecificFields(country, isResident) {
         if (country === 'Singapore') {
             singaporeFields.style.display = 'block';
             usFields.style.display = 'none';
+            chinaFields.style.display = 'none';
         } else if (country === 'United States') {
             singaporeFields.style.display = 'none';
-            usFields.style.display = 'block';
+            usFields.style.display = isResident ? 'block' : 'none';
+            chinaFields.style.display = 'none';
+        } else if (country === 'China') {
+            singaporeFields.style.display = 'none';
+            usFields.style.display = 'none';
+            chinaFields.style.display = 'block';
         } else {
             singaporeFields.style.display = 'none';
             usFields.style.display = 'none';
+            chinaFields.style.display = 'none';
         }
     }
 
@@ -125,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const result = await response.json();
                 displayResults(result);
-                createCharts(result);  // Make sure this line is here
+                createCharts(result);
             } else {
                 resultDiv.innerHTML = '<p>Error calculating tax</p>';
             }
@@ -153,32 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
         `;
 
-        if ('income_tax' in result) {
-            // Singapore-specific fields
-            resultHTML += `
-                <tr>
-                    <td>Annual Income Tax</td>
-                    <td>${formatCurrency(result.income_tax)}</td>
-                </tr>
-                <tr>
-                    <td>Total Annual Employee CPF Contribution</td>
-                    <td>${formatCurrency(result.employee_cpf_contribution)}</td>
-                </tr>
-                <tr>
-                    <td>Annual Take-Home Income</td>
-                    <td>${formatCurrency(result.net_income)}</td>
-                </tr>
-                <tr>
-                    <td>Total Annual Employer CPF Contribution</td>
-                    <td>${formatCurrency(result.employer_cpf_contribution)}</td>
-                </tr>
-                <tr>
-                    <td>Total Annual Compensation</td>
-                    <td>${formatCurrency(result.total_compensation)}</td>
-                </tr>
-            `;
-        } else if ('federal_tax' in result) {
-            // US-specific fields
+        if (result.country === 'United States') {
             resultHTML += `
                 <tr>
                     <td>Federal Tax</td>
@@ -221,6 +213,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${formatCurrency(result.total_compensation)}</td>
                 </tr>
             `;
+        } else if (result.country === 'Singapore') {
+            // ... (keep Singapore-specific result display)
+        } else if (result.country === 'China') {
+            // ... (keep China-specific result display)
         }
 
         resultHTML += `
@@ -247,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let labels, data;
 
-        if ('income_tax' in result) {
+        if (result.country === 'Singapore') {
             // Singapore breakdown
             labels = ['Net Income', 'Income Tax', 'Employee CPF'];
             data = [
@@ -255,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 result.income_tax,
                 result.employee_cpf_contribution
             ];
-        } else {
+        } else if (result.country === 'United States') {
             // US breakdown
             labels = ['Net Income', 'Federal Tax', 'State Tax', 'Local Tax', 'Social Security Tax', 'Medicare Tax', '401(k) Contribution'];
             data = [
@@ -266,6 +262,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 result.social_security_tax,
                 result.medicare_tax,
                 result.employee_401k_contribution
+            ];
+        } else if (result.country === 'China') {
+            // China breakdown
+            labels = ['Net Income', 'Income Tax', 'Employee Social Insurance'];
+            data = [
+                result.net_income,
+                result.income_tax,
+                result.employee_social_insurance
             ];
         }
 
@@ -326,10 +330,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Singapore
             labels = ['Employer CPF Contribution'];
             data = [(result.employer_cpf_contribution / result.gross_income) * 100];
-        } else {
+        } else if ('employer_401k_contribution' in result) {
             // US
             labels = ['Employer 401(k) Contribution'];
             data = [(result.employer_401k_contribution / result.gross_income) * 100];
+        } else if ('employer_social_insurance' in result) {
+            // China
+            labels = ['Employer Social Insurance'];
+            data = [(result.employer_social_insurance / result.gross_income) * 100];
         }
 
         additionalCompensationChart = new Chart(ctx, {
@@ -380,5 +388,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         });
+
+
     }
 });

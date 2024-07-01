@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Tax Calculator{% endblock %}
+{% block title %}Salary Breakdown Calculator{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -47,6 +47,7 @@
             <input type="number" id="income" name="income" placeholder="Enter your annual income" required>
         </div>
         
+        <!-- COUNTRY SPECIFIC FIELDS HERE -->
         <div id="singapore-fields" class="country-specific-fields" style="display: none;">
             <h3>Singapore Specific Information</h3>
             <div class="form-group">
@@ -77,9 +78,15 @@
             </div>
         </div>
 
+        <div id="china-fields" class="country-specific-fields" style="display: none;">
+            <h3>China Specific Information</h3>
+            <!-- Currently, we don't have any specific fields for China, but we can add them here if needed in the future -->
+        </div>
+
         <button type="submit" class="btn-calculate">Calculate</button>
     </form>
 
+    <!-- RESULTS HERE -->
     <div id="result" class="result-container"></div>
 
     <div id="charts-container" class="charts-container" style="display: none;">

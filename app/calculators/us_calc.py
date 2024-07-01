@@ -148,39 +148,49 @@ def get_cities(state):
 def get_available_years():
     return sorted(list(FEDERAL_TAX_RATES.keys()), reverse=True)
 
-def calculate_federal_tax(taxable_income, year):
-    tax = 0
-    for bracket in FEDERAL_TAX_RATES[year]:
-        if taxable_income > bracket['income_threshold']:
-            taxable_amount = min(taxable_income - bracket['income_threshold'], bracket['income_threshold'])
-            tax += taxable_amount * bracket['rate']
-        else:
-            break
-    return tax
+def calculate_federal_tax(taxable_income, year, is_resident):
+    if is_resident:
+        tax = 0
+        for bracket in FEDERAL_TAX_RATES[year]:
+            if taxable_income > bracket['income_threshold']:
+                taxable_amount = min(taxable_income, bracket['income_threshold']) - bracket['income_threshold']
+                tax += taxable_amount * bracket['rate']
+            else:
+                break
+        return tax
+    else:
+        # Non-resident aliens are typically taxed at a flat 30% rate on most types of income
+        return taxable_income * 0.30
 
-def calculate_state_tax(taxable_income, state, year):
-    if state not in STATE_TAX_RATES[year]:
+def calculate_state_tax(taxable_income, state, year, is_resident):
+    if not is_resident or state not in STATE_TAX_RATES[year]:
         return 0
     tax = 0
     for bracket in STATE_TAX_RATES[year][state]:
         if taxable_income > bracket['income_threshold']:
-            taxable_amount = min(taxable_income - bracket['income_threshold'], bracket['income_threshold'])
+            taxable_amount = min(taxable_income, bracket['income_threshold']) - bracket['income_threshold']
             tax += taxable_amount * bracket['rate']
         else:
             break
     return tax
 
-def calculate_local_tax(taxable_income, state, city, year):
+def calculate_local_tax(taxable_income, state, city, year, is_resident):
+    if not is_resident:
+        return 0
     if state in LOCAL_TAX_RATES[year] and city in LOCAL_TAX_RATES[year][state]:
         return taxable_income * LOCAL_TAX_RATES[year][state][city]
     return 0
 
-def calculate_social_security_tax(income, year):
+def calculate_social_security_tax(income, year, is_resident):
+    if not is_resident:
+        return 0  # Non-resident aliens typically don't pay Social Security tax
     rate = SOCIAL_SECURITY_RATES[year]['employee_rate']
     wage_base = SOCIAL_SECURITY_RATES[year]['wage_base']
     return min(income, wage_base) * rate
 
-def calculate_medicare_tax(income, year):
+def calculate_medicare_tax(income, year, is_resident):
+    if not is_resident:
+        return 0  # Non-resident aliens typically don't pay Medicare tax
     base_rate = MEDICARE_RATES[year]['employee_rate']
     additional_rate = MEDICARE_RATES[year]['additional_rate']
     threshold = MEDICARE_RATES[year]['additional_threshold_single']
@@ -190,8 +200,10 @@ def calculate_medicare_tax(income, year):
     
     return base_tax + additional_tax
 
-def calculate_401k(income, contribution_percent, employer_match_percent, employer_match_limit):
-    contribution_limit = 23000  # 2021 401(k) contribution limit
+def calculate_401k(income, contribution_percent, employer_match_percent, employer_match_limit, is_resident):
+    if not is_resident:
+        return 0, 0  # Non-resident aliens typically can't contribute to 401(k)
+    contribution_limit = 23000  # 2024 401(k) contribution limit
     contribution = min(income * (contribution_percent / 100), contribution_limit)
     
     employer_contribution = min(
@@ -207,16 +219,16 @@ def calculate(income, state, city, year, is_resident=True, contribution_percent=
         raise ValueError(f"No data available for year {year}")
 
     # Calculate 401(k) contributions
-    employee_401k, employer_401k = calculate_401k(income, contribution_percent, employer_match_percent, employer_match_limit)
+    employee_401k, employer_401k = calculate_401k(income, contribution_percent, employer_match_percent, employer_match_limit, is_resident)
     
     # Adjust taxable income
     taxable_income = income - employee_401k
 
-    federal_tax = calculate_federal_tax(taxable_income, year)
-    state_tax = calculate_state_tax(taxable_income, state, year)
-    local_tax = calculate_local_tax(taxable_income, state, city, year)
-    social_security_tax = calculate_social_security_tax(income, year)
-    medicare_tax = calculate_medicare_tax(income, year)
+    federal_tax = calculate_federal_tax(taxable_income, year, is_resident)
+    state_tax = calculate_state_tax(taxable_income, state, year, is_resident)
+    local_tax = calculate_local_tax(taxable_income, state, city, year, is_resident)
+    social_security_tax = calculate_social_security_tax(income, year, is_resident)
+    medicare_tax = calculate_medicare_tax(income, year, is_resident)
 
     total_tax = federal_tax + state_tax + local_tax + social_security_tax + medicare_tax
     net_income = income - total_tax - employee_401k
