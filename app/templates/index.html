@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Tax Calculator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Tax Calculator</h1>
+    <form id="tax-form">
+        <div class="form-group">
+            <label for="country">Country:</label>
+            <select id="country" name="country" required>
+                <option value="">Select Country</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="tax-year">Tax Year:</label>
+            <select id="tax-year" name="tax-year" required>
+                <option value="">Select Tax Year</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="residency-status">Residency Status:</label>
+            <select id="residency-status" name="residency-status" required>
+                <option value="resident">Resident</option>
+                <option value="non-resident">Non-Resident</option>
+            </select>
+        </div>
+        
+        <div id="state-container" class="form-group" style="display: none;">
+            <label for="state">State/Province:</label>
+            <select id="state" name="state">
+                <option value="">Select State/Province</option>
+            </select>
+        </div>
+
+        <div id="city-container" class="form-group" style="display: none;">
+            <label for="city">City:</label>
+            <select id="city" name="city">
+                <option value="">Select City</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="income">Annual Income:</label>
+            <input type="number" id="income" name="income" placeholder="Enter your annual income" required>
+        </div>
+        
+        <div id="singapore-fields" class="country-specific-fields" style="display: none;">
+            <h3>Singapore Specific Information</h3>
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <input type="number" id="age" name="age" min="0" max="120" placeholder="Enter your age">
+            </div>
+        </div>
+
+        <div id="us-fields" class="country-specific-fields" style="display: none;">
+            <h3>401(k) Information</h3>
+            <div class="form-group">
+                <label for="401k-contribution">Employee 401(k) Contribution (%):</label>
+                <input type="number" id="401k-contribution" name="401k-contribution" 
+                       min="0" max="100" step="0.1" placeholder="0.0" 
+                       title="Enter a percentage between 0 and 100">
+            </div>
+            <div class="form-group">
+                <label for="employer-match">Employer 401(k) Match (%):</label>
+                <input type="number" id="employer-match" name="employer-match" 
+                       min="0" max="100" step="0.1" placeholder="0.0" 
+                       title="Enter a percentage between 0 and 100">
+            </div>
+            <div class="form-group">
+                <label for="employer-match-limit">Employer Match Limit (%):</label>
+                <input type="number" id="employer-match-limit" name="employer-match-limit" 
+                       min="0" max="100" step="0.1" placeholder="0.0" 
+                       title="Enter a percentage between 0 and 100">
+            </div>
+        </div>
+
+        <button type="submit" class="btn-calculate">Calculate</button>
+    </form>
+
+    <div id="result" class="result-container"></div>
+
+    <div id="charts-container" class="charts-container" style="display: none;">
+        <div class="chart-wrapper">
+            <canvas id="breakdown-chart"></canvas>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="additional-compensation-chart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
