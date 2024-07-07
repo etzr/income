@@ -3,10 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="google-adsense-account" content="ca-pub-5070332439216511">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5070332439216511" crossorigin="anonymous"></script>
-    <title>{% block title %}Tax Calculator{% endblock %}</title>
+    <title>{% block title %}Tax Calculator - Salary Breakdown Calculator{% endblock %}</title>
+    <meta name="description" content="Use our tax calculator to get a detailed breakdown of your salary and taxes across different countries. Calculate your net income, tax obligations, and more.">
+    <link rel="canonical" href="https://salary-calculator.etzr.app">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Tax Calculator",
+      "description": "Use our tax calculator to get a detailed breakdown of your salary and taxes across different countries. Calculate your net income, tax obligations, and more. For expats, this will be useful when negotiating your salary for your new job.",
+      "url": "https://your-website.com",
+      "applicationCategory": "FinanceCalculator",
+      "screenshot": "https://raw.githubusercontent.com/etzr/img/2aeecf5466032ffa6a1c3f2cf05b1bc18df4aa1b/screenshot.png",
+      "image": "https://raw.githubusercontent.com/etzr/img/2aeecf5466032ffa6a1c3f2cf05b1bc18df4aa1b/icon.png"
+    }
+    </script>
+
+    <!-- Social Media Metadata -->
+    <meta property="og:title" content="Tax Calculator - Salary Breakdown Calculator">
+    <meta property="og:description" content="Use our tax calculator to get a detailed breakdown of your salary and taxes across different countries. Calculate your net income, tax obligations, and more.">
+    <meta property="og:url" content="https://salary-calculator.etzr.app">
+    <meta property="og:image" content="https://raw.githubusercontent.com/etzr/img/2aeecf5466032ffa6a1c3f2cf05b1bc18df4aa1b/icon.png">
 </head>
 <body>
     <div class="container">
