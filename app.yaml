@@ -12,8 +12,3 @@ handlers:
 env_variables:
   FLASK_APP: run.py
   FLASK_ENV: production
-
-runtime_config:
-  python_version: 3.10
-
-requirements_txt: requirements.txt
