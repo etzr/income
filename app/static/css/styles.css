@@ -1,4 +1,21 @@
 /* General Styles */
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.logo {
+  margin-right: 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+
 body {
     font-family: Arial, sans-serif;
     line-height: 1.6;
