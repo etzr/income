@@ -1,20 +1,30 @@
 /* General Styles */
 .header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
-.logo {
-  margin-right: 1rem;
+.banner-container {
+    width: 100%;
+    height: 250px;
+    overflow: hidden;
+}
+
+.banner-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    object-position: top;
 }
 
 .title {
-  font-size: 2rem;
-  font-weight: bold;
+    font-size: 2rem;
+    font-weight: bold;
+    margin-top: 10px;
+    text-align: center;
 }
-
 
 body {
     font-family: Arial, sans-serif;
@@ -64,6 +74,7 @@ input, select {
     border: 1px solid #ced4da;
     border-radius: 4px;
     font-size: 16px;
+    box-sizing: border-box;
 }
 
 input:focus, select:focus {
@@ -141,25 +152,41 @@ input[type="number"]::-webkit-outer-spin-button {
 /* Chart Styles */
 .charts-container {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-direction: column;  /* Change to column layout by default */
+    gap: 20px;  /* Use gap for spacing between items */
     margin-top: 30px;
+    width: 100%;  /* Ensure full width */
+    box-sizing: border-box;  /* Include padding in width calculation */
 }
 
 .chart-wrapper {
-    width: 48%;
-    margin-bottom: 20px;
+    width: 100%;  /* Full width by default */
     background-color: #fff;
     border: 1px solid #dee2e6;
     border-radius: 4px;
     padding: 15px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-sizing: border-box;  /* Include padding in width calculation */
 }
 
 /* Responsive Design */
+@media (min-width: 768px) {
+    .charts-container {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+
+    .chart-wrapper {
+        width: calc(50% - 10px);  /* 50% width minus half of the gap */
+    }
+}
+
 @media (max-width: 768px) {
     .container {
         padding: 15px;
+        width: 100%; 
+        box-sizing: border-box;
     }
 
     .chart-wrapper {
