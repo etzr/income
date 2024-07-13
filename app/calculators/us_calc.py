@@ -260,7 +260,8 @@ def calculate(income, state, city, year, is_resident=True, contribution_percent=
         'employee_401k_contribution': employee_401k,
         'employer_401k_contribution': employer_401k,
         'net_income': net_income,
-        'total_compensation': income + employer_401k
+        'total_compensation': income + employer_401k,
+        'real_compensation': income - total_tax + employer_401k
     }
     
     return breakdown

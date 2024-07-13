@@ -8,6 +8,11 @@
         </div>
         <h1 class="title">Salary Calculator</h1>
     </header>
+
+    <div class="introduction">
+        <p>Welcome to our comprehensive Salary Calculator. This tool helps you estimate your take-home pay and understand your tax obligations in China, Singapore, and the United States. Simply select your country, input your salary details, and get a detailed breakdown of your income, taxes, and benefits. Whether you're planning a career move, negotiating a new contract, or just curious about your finances, our calculator provides valuable insights tailored to your specific situation.</p>
+        <p>Please note: This calculator provides estimates based on general tax rules and may not account for all individual circumstances. For personalized financial advice, please consult with a qualified tax professional.</p>
+    </div>
     
     <form id="tax-form">
         <div class="form-group">
@@ -48,6 +53,9 @@
 
         <div class="form-group">
             <label for="income">Annual Income:</label>
+            <div id="salary-distribution-container">
+                <canvas id="salary-distribution-chart"></canvas>
+            </div>
             <input type="number" id="income" name="income" placeholder="Enter your annual income" required>
         </div>
         
@@ -95,14 +103,12 @@
 
     <div id="charts-container" class="charts-container" style="display: none;">
         <div class="chart-wrapper">
-            <canvas id="breakdown-chart"></canvas>
+            <canvas id="breakdown-chart" height="400"></canvas>
         </div>
         <div class="chart-wrapper">
-            <canvas id="additional-compensation-chart"></canvas>
+            <canvas id="additional-compensation-chart" height="400"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Include Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}

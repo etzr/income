@@ -5,3 +5,5 @@ config.py
 *.py[cod]
 
 myenv/
+
+logs/

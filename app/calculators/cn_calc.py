@@ -82,10 +82,11 @@ def calculate_social_insurance(income, year):
         raise ValueError(f"No social insurance data available for year {year}")
 
     employee_rates = SOCIAL_INSURANCE_RATES[year]['employee']
-    employer_rates = SOCIAL_INSURANCE_RATES[year]['employer']
+    # employer_rates = SOCIAL_INSURANCE_RATES[year]['employer']
     
     employee_contribution = sum(income * rate for rate in employee_rates.values())
-    employer_contribution = sum(income * rate for rate in employer_rates.values())
+    # employer_contribution = sum(income * rate for rate in employer_rates.values())
+    employer_contribution = income * 0.07
     
     return employee_contribution, employer_contribution
 
@@ -123,7 +124,8 @@ def calculate(income, state=None, city=None, year=None, is_resident=True):
         'employee_social_insurance': employee_social_insurance,
         'employer_social_insurance': employer_social_insurance,
         'net_income': net_income,
-        'total_compensation': income + employer_social_insurance
+        'total_compensation': income + employer_social_insurance,
+        'real_compensation': income - income_tax + employer_social_insurance
     }
 
     return breakdown

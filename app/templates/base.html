@@ -8,6 +8,10 @@
     <link rel="canonical" href="https://salary-calculator.etzr.app">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.0.0"></script>
+    
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/etzr/img/main/salary-calculator%20icon.png" sizes="32x32" type="image/png">
 
@@ -50,5 +54,20 @@
 
       gtag('config', 'G-CVQ4WD5C4E');
     </script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('tax-form');
+        form.addEventListener('submit', function() {
+            gtag('event', 'form_submit', {
+                'event_category': 'Tax Calculator',
+                'event_label': 'Calculate Taxes'
+            });
+        });
+    });
+    </script>
+
+
+
 </body>
 </html>

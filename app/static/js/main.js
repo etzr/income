@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const usFields = document.getElementById('us-fields');
     const chinaFields = document.getElementById('china-fields');
 
+    let distributionChart = null;
+
     function formatCurrency(amount) {
         return amount && typeof amount === 'number' 
             ? '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')
@@ -39,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (selectedCountry) {
                     updateStates(selectedCountry);
                     toggleCountrySpecificFields(selectedCountry, residencyStatusSelect.value === 'resident');
+                    updateSalaryDistributionChart(selectedCountry);
                 } else {
                     stateContainer.style.display = 'none';
                     cityContainer.style.display = 'none';
@@ -63,6 +66,69 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+
+
+    function updateSalaryDistributionChart(country) {
+        console.log('Updating salary distribution chart for:', country);
+        fetch(`/api/salary_distribution/${country}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Received data:', data);
+                const canvas = document.getElementById('salary-distribution-chart');
+                if (!canvas) {
+                    console.error('Canvas element not found');
+                    return;
+                }
+                const ctx = canvas.getContext('2d');
+                
+                if (distributionChart) {
+                    distributionChart.destroy();
+                }
+
+                distributionChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.x,
+                        datasets: [{
+                            label: 'Salary Distribution',
+                            data: data.y.map((y, index) => ({x: data.x[index], y: y})),
+                            fill: true,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                position: 'bottom',
+                                title: {
+                                    display: true,
+                                    text: 'Annual Salary'
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        return formatCurrency(value);
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Probability'
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('Chart created:', distributionChart);
+            })
+            .catch(error => console.error('Error fetching salary distribution:', error));
+    }
 
     function toggleCountrySpecificFields(country, isResident) {
         if (country === 'Singapore') {
@@ -130,6 +196,9 @@ document.addEventListener('DOMContentLoaded', () => {
         data.is_resident = data['residency-status'] === 'resident';
         delete data['residency-status'];
 
+        // Add IP address (this will be ignored by the server, but logged)
+        data.ip_address = 'client_side';
+
         try {
             const response = await fetch('/api/calculate', {
                 method: 'POST',
@@ -170,9 +239,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 'medicare_tax',
                 'social_security_tax',
                 'employee_401k_contribution',
-                'net_income',
+                'employer_401k_contribution',
                 'total_compensation',
-                'employer_401k_contribution'
+                'net_income',
+                'real_compensation'
             ];
 
             const orderedKeysSG = [
@@ -180,8 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 'income_tax',
                 'employee_cpf_contribution',
                 'employer_cpf_contribution',
+                'total_compensation',
                 'net_income',
-                'total_compensation'
+                'real_compensation'
             ];
 
             const orderedKeysCN = [
@@ -189,8 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 'income_tax',
                 'employee_social_insurance',
                 'employer_social_insurance',
+                'total_compensation',
                 'net_income',
-                'total_compensation'
+                'real_compensation'
             ];
 
             // Determine the appropriate ordered keys based on the country
@@ -277,49 +349,54 @@ document.addEventListener('DOMContentLoaded', () => {
             ];
         }
 
-        breakdownChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: [
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 206, 86, 0.8)',
-                        'rgba(153, 102, 255, 0.8)',
-                        'rgba(255, 159, 64, 0.8)',
-                        'rgba(199, 199, 199, 0.8)'
-                    ],
-                    hoverOffset: 30
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Income Breakdown'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const label = context.label || '';
-                                const value = context.parsed || 0;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((value / total) * 100).toFixed(2);
-                                return `${label}: ${percentage}% (${formatCurrency(value)})`;
+            breakdownChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#3498db',
+                            '#e74c3c',
+                            '#2ecc71',
+                            '#f1c40f',
+                            '#9b59b6',
+                            '#34495e',
+                            '#1abc9c'
+                        ],
+                        borderColor: 'white',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: {
+                                    size: 14
+                                },
+                                padding: 20
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Income Breakdown',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 30
                             }
                         }
                     }
                 }
-            }
-        });
-    }
+            });
+        }
 
     function createAdditionalCompensationChart(result) {
         const ctx = document.getElementById('additional-compensation-chart').getContext('2d');
@@ -351,28 +428,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 datasets: [{
                     label: '% of Annual Income',
                     data: data,
-                    backgroundColor: 'rgba(153, 102, 255, 0.8)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
+                    backgroundColor: '#3498db',
+                    borderColor: '#2980b9',
                     borderWidth: 1
                 }]
             },
             options: {
                 responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         display: false
                     },
                     title: {
                         display: true,
-                        text: 'Additional Compensation'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const value = context.parsed.y || 0;
-                                const absoluteValue = (value / 100) * result.gross_income;
-                                return `${value.toFixed(2)}% of Annual Income (${formatCurrency(absoluteValue)})`;
-                            }
+                        text: 'Additional Compensation',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        },
+                        padding: {
+                            top: 10,
+                            bottom: 30
                         }
                     }
                 },
@@ -381,18 +458,30 @@ document.addEventListener('DOMContentLoaded', () => {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Percentage of Annual Income'
+                            text: 'Percentage of Annual Income',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
                         },
                         ticks: {
                             callback: function(value) {
                                 return value + '%';
+                            },
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 12
                             }
                         }
                     }
                 }
             }
         });
-
-
     }
 });

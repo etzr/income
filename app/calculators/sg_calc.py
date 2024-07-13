@@ -116,7 +116,8 @@ def calculate(income, state=None, city=None, age=35, year=None, is_resident=True
         'employee_cpf_contribution': employee_cpf,
         'employer_cpf_contribution': employer_cpf,
         'net_income': net_income,
-        'total_compensation': income + employer_cpf - income_tax
+        'total_compensation': income + employer_cpf,
+        'real_compensation': income - income_tax + employer_cpf
     }
 
     return breakdown
